@@ -25,6 +25,7 @@ repos:
         # so pre-commit, CI and manual runs all check the identical file set.
         pass_filenames: false
         additional_dependencies:
+          - faker>=30
           - pydantic>=2.11,<3
           - pytest>=8.3,<9
           - types-requests>=2.32

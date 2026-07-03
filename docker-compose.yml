@@ -1,0 +1,30 @@
+services:
+  restful-booker:
+    image: mwinteringham/restfulbooker:latest
+    ports:
+      - "3001:3001"
+    healthcheck:
+      # The image ships no curl/wget; probe with the node runtime it does have.
+      # /ping deliberately answers 201, hence the explicit status check.
+      test:
+        - CMD
+        - node
+        - -e
+        - >
+          require('http').get('http://localhost:3001/ping',
+          r => process.exit(r.statusCode === 201 ? 0 : 1))
+          .on('error', () => process.exit(1))
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  tests:
+    build: .
+    depends_on:
+      restful-booker:
+        condition: service_healthy
+    command: >
+      pytest --base-url http://restful-booker:3001
+      --html=reports/report.html --self-contained-html
+    volumes:
+      - ./reports:/app/reports

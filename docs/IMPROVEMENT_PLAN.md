@@ -1,5 +1,8 @@
 # Production-Readiness Improvement Plan
 
+> **Status: implemented.** All five phases below have been executed; this document is
+> kept as the historical roadmap. See the [README](../README.md) for current usage.
+
 Goal: turn this repo into a production-grade API test framework that demonstrates
 Senior SDET-level design to anyone reviewing it — clean architecture, quality gates,
 CI/CD, and documented engineering decisions.
