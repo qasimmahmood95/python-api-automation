@@ -1,0 +1,10 @@
+{
+  "firstname": "Qasim",
+  "lastname": "Mahmood",
+  "totalprice": 999,
+  "depositpaid": true,
+  "bookingdates": "not-an-object",
+  "checkin": "2026-01-01",
+  "checkout": "2026-01-08",
+  "additionalneeds": "Halal food"
+}
