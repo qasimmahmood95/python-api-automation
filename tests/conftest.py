@@ -7,10 +7,12 @@ import logging
 import os
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
 import pytest
+from faker import Faker
 
 from restful_booker.clients import AuthClient, BookingClient, HealthClient
 
@@ -70,17 +72,24 @@ def auth_token(auth_client: AuthClient, credentials: tuple[str, str]) -> str:
     return str(body["token"])
 
 
+fake = Faker()
+
+
 @pytest.fixture
 def booking_payload() -> dict[str, Any]:
-    """A valid booking payload."""
-    return {
-        "firstname": "Qasim",
-        "lastname": "Mahmood",
-        "totalprice": 999,
-        "depositpaid": True,
-        "bookingdates": {"checkin": "2026-01-01", "checkout": "2026-01-08"},
-        "additionalneeds": "Halal food",
+    """A unique valid booking payload per test, logged so failures are reproducible."""
+    checkin = fake.date_between(start_date="+1d", end_date="+60d")
+    checkout = checkin + timedelta(days=fake.random_int(min=1, max=14))
+    payload = {
+        "firstname": fake.first_name(),
+        "lastname": fake.last_name(),
+        "totalprice": fake.random_int(min=50, max=5000),
+        "depositpaid": fake.boolean(),
+        "bookingdates": {"checkin": checkin.isoformat(), "checkout": checkout.isoformat()},
+        "additionalneeds": fake.random_element(("Breakfast", "Late checkout", "Extra pillows")),
     }
+    logger.info("generated booking payload: %s", payload)
+    return payload
 
 
 @pytest.fixture

@@ -1,7 +1,7 @@
 VENV ?= .venv
 PYTHON := $(VENV)/bin/python
 
-.PHONY: install lint format typecheck test smoke report precommit
+.PHONY: install lint format typecheck test smoke report precommit docker-test
 
 install:
 	python3 -m venv $(VENV)
@@ -31,3 +31,7 @@ report:
 
 precommit:
 	$(VENV)/bin/pre-commit run --all-files
+
+# Hermetic run: restful-booker + suite in containers, report lands in ./reports
+docker-test:
+	docker compose run --build --rm tests
