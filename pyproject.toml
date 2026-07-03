@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "restful-booker-tests"
+version = "1.0.0"
+description = "Production-grade API test automation framework for the restful-booker API"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.11,<3",
+    "requests>=2.32,<3",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.3,<9",
+    "pytest-base-url>=2.1,<3",
+    "pytest-html>=4.1,<5",
+    "pytest-rerunfailures>=14",
+    "pytest-xdist>=3.6,<4",
+]
+dev = [
+    "restful-booker-tests[test]",
+    "mypy>=1.14",
+    "pre-commit>=3.8",
+    "ruff>=0.15",
+    "types-requests>=2.32",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+addopts = "-ra --strict-markers"
+log_level = "INFO"
+markers = [
+    "smoke: fast, high-value checks that gate everything else",
+    "negative: invalid-input and unauthorized-access cases",
+]
+base_url = "https://restful-booker.herokuapp.com"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "PT",  # flake8-pytest-style
+    "RUF", # ruff-specific
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+mypy_path = "src"
+files = ["src/restful_booker", "tests"]
+plugins = ["pydantic.mypy"]

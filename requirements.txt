@@ -1,6 +1,0 @@
-# Direct dependencies only - transitive pins are resolved by pip.
-# NOTE: superseded by pyproject.toml in Phase 2; kept during Phase 0/1.
-pydantic==2.11.7
-pytest==8.3.2
-pytest-base-url==2.1.0
-requests==2.32.3

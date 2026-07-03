@@ -107,9 +107,7 @@ def create_booking(
     for booking_id in created_ids:
         cleanup = booking_client.delete_booking(booking_id, auth_token)
         if cleanup.status_code not in _DELETED_OK:
-            logger.warning(
-                "cleanup of booking %s answered %s", booking_id, cleanup.status_code
-            )
+            logger.warning("cleanup of booking %s answered %s", booking_id, cleanup.status_code)
 
 
 @pytest.fixture
