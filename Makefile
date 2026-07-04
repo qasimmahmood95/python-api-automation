@@ -32,6 +32,8 @@ report:
 precommit:
 	$(VENV)/bin/pre-commit run --all-files
 
-# Hermetic run: restful-booker + suite in containers, report lands in ./reports
+# Hermetic run: restful-booker + suite in containers, report lands in ./reports.
+# Pre-creating reports/ keeps it owned by the invoking user, not root.
 docker-test:
-	docker compose run --build --rm tests
+	mkdir -p reports
+	docker compose run --build --rm tests; status=$$?; docker compose down; exit $$status

@@ -18,10 +18,20 @@ def test_valid_credentials_yield_a_token(
     assert token.token
 
 
+INVALID_CREDENTIALS = [
+    pytest.param("admin", "definitely-not-the-password", id="wrong-password"),
+    pytest.param("no-such-user", "password123", id="unknown-user"),
+    pytest.param("admin", "", id="empty-password"),
+]
+
+
 @pytest.mark.negative
-def test_invalid_credentials_are_rejected(auth_client: AuthClient) -> None:
+@pytest.mark.parametrize(("username", "password"), INVALID_CREDENTIALS)
+def test_invalid_credentials_are_rejected(
+    auth_client: AuthClient, username: str, password: str
+) -> None:
     # Quirk: restful-booker rejects bad credentials with 200 + a reason body,
     # not 401 — asserting the body is the only way to detect the failure.
-    response = auth_client.create_token("not-a-user", "wrong-password")
-    assert response.status_code == 200
+    response = auth_client.create_token(username, password)
+    assert response.status_code == 200, response.text
     assert response.json() == {"reason": "Bad credentials"}

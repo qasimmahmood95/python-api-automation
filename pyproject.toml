@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=69"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,11 +7,27 @@ name = "restful-booker-tests"
 version = "1.0.0"
 description = "Production-grade API test automation framework for the restful-booker API"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Qasim Mahmood" }]
 requires-python = ">=3.11"
+classifiers = [
+    "Framework :: Pytest",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
 dependencies = [
     "pydantic>=2.11,<3",
     "requests>=2.32,<3",
+    "urllib3>=2,<3",
 ]
+
+[project.urls]
+Repository = "https://github.com/qasimmahmood95/python-api-automation"
+Issues = "https://github.com/qasimmahmood95/python-api-automation/issues"
 
 [project.optional-dependencies]
 test = [
@@ -24,9 +40,10 @@ test = [
 ]
 dev = [
     "restful-booker-tests[test]",
-    "mypy>=1.14",
+    # ruff/mypy bounds track the .pre-commit-config.yaml revs; bump in lockstep.
+    "mypy>=2.1,<2.2",
     "pre-commit>=3.8",
-    "ruff>=0.15",
+    "ruff>=0.15,<0.16",
     "types-requests>=2.32",
 ]
 

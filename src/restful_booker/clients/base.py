@@ -33,10 +33,26 @@ class BaseClient:
     """
 
     def __init__(self, base_url: str, timeout: float = DEFAULT_TIMEOUT_SECONDS) -> None:
+        if not base_url:
+            raise ValueError(
+                "base_url is required - pass --base-url or set the base_url ini option"
+            )
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.session = requests.Session()
-        retry = Retry(total=3, backoff_factor=0.5, status_forcelist=())
+        # Connection-setup failures only: no status-based retries (tests assert
+        # on 4xx/5xx), no read retries (a request whose body was already sent
+        # must never be silently replayed), no Retry-After sleeps.
+        retry = Retry(
+            total=None,
+            connect=3,
+            read=0,
+            redirect=0,
+            status=0,
+            other=0,
+            backoff_factor=0.5,
+            respect_retry_after_header=False,
+        )
         adapter = HTTPAdapter(max_retries=retry)
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)

@@ -49,13 +49,13 @@ request validation behavior for malformed payloads.
   variants, auth failure modes) are one parametrized test with readable `ids`, not
   copy-pasted near-duplicates.
 - **Markers.** `smoke` and `negative` markers (registered, `--strict-markers`) allow
-  fast subset runs locally and selective jobs in CI.
+  fast subset runs, e.g. `make smoke` or `pytest -m negative`.
 
 ## 4. Environments
 
 | Environment | Base URL | Role |
 |---|---|---|
-| Local Docker (`mwinteringham/restfulbooker`, port 3001) | `http://localhost:3001` | Deterministic default for development and PR-gating CI |
+| Local Docker (`mwinteringham/restfulbooker`, port 3001) | `http://localhost:3001` | Deterministic target for PR-gating CI and hermetic local runs (`make docker-test`) |
 | Live Heroku instance | `https://restful-booker.herokuapp.com` | Nightly real-world smoke against the public deployment |
 
 The base URL is injected via `pytest-base-url` — the `--base-url` CLI flag overrides the
