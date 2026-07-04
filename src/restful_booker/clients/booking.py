@@ -10,9 +10,10 @@ import requests
 from restful_booker.clients.base import BaseClient
 
 
-def _token_cookie(token: str) -> dict[str, str]:
-    # restful-booker authorizes write operations via a token cookie.
-    return {"Cookie": f"token={token}"}
+def _token_cookie(token: str | None) -> dict[str, str]:
+    # restful-booker authorizes write operations via a token cookie;
+    # None means "send no auth at all" for missing-auth negative tests.
+    return {} if token is None else {"Cookie": f"token={token}"}
 
 
 class BookingClient(BaseClient):
@@ -27,18 +28,18 @@ class BookingClient(BaseClient):
         return self.request("POST", "/booking", json=payload)
 
     def update_booking(
-        self, booking_id: int, payload: Mapping[str, Any], token: str
+        self, booking_id: int, payload: Mapping[str, Any], token: str | None
     ) -> requests.Response:
         return self.request(
             "PUT", f"/booking/{booking_id}", json=payload, headers=_token_cookie(token)
         )
 
     def partial_update_booking(
-        self, booking_id: int, payload: Mapping[str, Any], token: str
+        self, booking_id: int, payload: Mapping[str, Any], token: str | None
     ) -> requests.Response:
         return self.request(
             "PATCH", f"/booking/{booking_id}", json=payload, headers=_token_cookie(token)
         )
 
-    def delete_booking(self, booking_id: int, token: str) -> requests.Response:
+    def delete_booking(self, booking_id: int, token: str | None) -> requests.Response:
         return self.request("DELETE", f"/booking/{booking_id}", headers=_token_cookie(token))

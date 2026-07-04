@@ -4,6 +4,7 @@
 ![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A production-grade API test automation framework for the
 [restful-booker](https://restful-booker.herokuapp.com) hotel-booking API, built with
@@ -37,8 +38,8 @@ flowchart LR
 - **Models** (`src/restful_booker/models.py`) — pydantic contracts with
   `extra="forbid"`: any field the API adds, renames, or drops fails loudly.
 - **Fixtures** (`tests/conftest.py`) — a session-scoped auth token (one auth call per
-  run), and a booking factory that deletes everything it created during teardown, so
-  the suite leaves no residue even on the shared public instance.
+  pytest worker), and a booking factory that deletes everything it created during
+  teardown, so the suite leaves no residue even on the shared public instance.
 
 ## Project layout
 
@@ -91,7 +92,7 @@ documentation values — configuration, not secrets. Override with
 | Job | Trigger | What it does |
 |---|---|---|
 | `lint` | every push / PR | ruff check, ruff format, strict mypy |
-| `test` | every push / PR | suite on Python 3.11–3.13 against a **pinned restful-booker container** (deterministic — no shared state, no cold starts), parallelized with `pytest-xdist`; HTML report uploaded per run |
+| `test` | every push / PR | suite on Python 3.11–3.13 against a **digest-pinned restful-booker container** (deterministic — no shared state, no cold starts), parallelized with `pytest-xdist`; HTML report uploaded per run |
 | `live-nightly` | nightly cron / manual | full suite against the live Heroku instance with bounded reruns; report always uploaded |
 
 Red PR builds mean real regressions: retries are deliberately **not** enabled in the

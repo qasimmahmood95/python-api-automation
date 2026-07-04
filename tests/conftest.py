@@ -38,6 +38,20 @@ def load_test_data(relative_path: str) -> Any:
 
 
 @pytest.fixture(scope="session")
+def base_url(request: pytest.FixtureRequest) -> str:
+    """Target base URL: the --base-url flag, else the pyproject.toml default.
+
+    Overrides pytest-base-url's fixture because that plugin resolves the ini
+    fallback only on the xdist controller, so a bare `pytest -n auto` would
+    hand every worker base_url=None and crash the whole suite.
+    """
+    url = request.config.getoption("base_url") or request.config.getini("base_url")
+    if not url:
+        pytest.fail("no base URL configured: pass --base-url or set base_url in pyproject.toml")
+    return str(url)
+
+
+@pytest.fixture(scope="session")
 def credentials() -> tuple[str, str]:
     """Auth credentials; the defaults are restful-booker's published demo creds."""
     return (
@@ -63,7 +77,7 @@ def booking_client(base_url: str) -> BookingClient:
 
 @pytest.fixture(scope="session")
 def auth_token(auth_client: AuthClient, credentials: tuple[str, str]) -> str:
-    """A valid auth token, created once per session."""
+    """A valid auth token, created once per session (i.e. once per xdist worker)."""
     response = auth_client.create_token(*credentials)
     assert response.status_code == 200, f"token request failed: {response.text}"
     body = response.json()
