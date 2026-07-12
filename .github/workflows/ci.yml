@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Nightly run of the full suite against the live public API.
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+# Event name is part of the group so a scheduled nightly run and a push to
+# main can never cancel each other.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Ruff lint
+        run: ruff check --output-format=github src tests
+      - name: Ruff format
+        run: ruff format --check src tests
+      - name: Mypy
+        run: mypy
+
+  test:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    # PR gating runs against a digest-pinned local restful-booker container,
+    # not the live Heroku instance, so results are deterministic and isolated.
+    services:
+      restful-booker:
+        image: mwinteringham/restfulbooker:latest@sha256:e4a04233731ceca2e6d99bca16689e0d4bc44631047ab351b6f11b5fa08fb418
+        ports:
+          - 3001:3001
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: pip install -e ".[test]"
+      - name: Wait for restful-booker
+        run: |
+          for _ in $(seq 1 30); do
+            if curl -sf -o /dev/null http://localhost:3001/ping; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "restful-booker did not become healthy" >&2
+          exit 1
+      - name: Run tests
+        run: >
+          pytest --base-url http://localhost:3001 -n auto
+          --html=reports/report.html --self-contained-html
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-report-python-${{ matrix.python-version }}
+          path: reports/report.html
+
+  live-nightly:
+    # The real-world check: full suite against the public Heroku deployment.
+    # Reruns tolerate that instance's cold starts; persistent failures are
+    # a genuine signal and reruns are reported in the HTML report. The Allure
+    # report (including failures) is published to GitHub Pages.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: pip install -e ".[test]"
+      - name: Run tests against live API
+        run: >
+          pytest --base-url https://restful-booker.herokuapp.com
+          --reruns 2 --reruns-delay 5
+          --alluredir=reports/allure-results
+          --html=reports/live-report.html --self-contained-html
+      - name: Generate Allure report
+        if: always()
+        env:
+          ALLURE_VERSION: "2.44.0"
+        run: |
+          curl -sSL -o allure.tgz "https://github.com/allure-framework/allure2/releases/download/${ALLURE_VERSION}/allure-${ALLURE_VERSION}.tgz"
+          tar -xzf allure.tgz
+          "./allure-${ALLURE_VERSION}/bin/allure" generate reports/allure-results -o reports/allure-report
+      - uses: actions/configure-pages@v6
+        if: always()
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v5
+        if: always()
+        with:
+          path: reports/allure-report
+      - name: Deploy report to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+        if: always()
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: live-test-report
+          path: reports/live-report.html
