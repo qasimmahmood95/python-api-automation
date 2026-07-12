@@ -3,9 +3,8 @@
 > **Status: implemented.** All five phases below have been executed; this document is
 > kept as the historical roadmap. See the [README](../README.md) for current usage.
 > Deliberate deviations: only `smoke` and `negative` markers are registered (a
-> `regression` run is simply the full suite); Allure/GitHub Pages publishing was
-> skipped in favour of self-contained pytest-html artifacts; the `v1.0.0` tag is
-> deferred until this branch merges to `main`.
+> `regression` run is simply the full suite); the `v1.0.0` tag is deferred until
+> this branch merges to `main`.
 
 Goal: turn this repo into a production-grade API test framework that demonstrates
 Senior SDET-level design to anyone reviewing it — clean architecture, quality gates,

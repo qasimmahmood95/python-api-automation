@@ -79,9 +79,17 @@ jobs:
   live-nightly:
     # The real-world check: full suite against the public Heroku deployment.
     # Reruns tolerate that instance's cold starts; persistent failures are
-    # a genuine signal and reruns are reported in the HTML report.
+    # a genuine signal and reruns are reported in the HTML report. The Allure
+    # report (including failures) is published to GitHub Pages.
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
@@ -94,7 +102,28 @@ jobs:
         run: >
           pytest --base-url https://restful-booker.herokuapp.com
           --reruns 2 --reruns-delay 5
+          --alluredir=reports/allure-results
           --html=reports/live-report.html --self-contained-html
+      - name: Generate Allure report
+        if: always()
+        env:
+          ALLURE_VERSION: "2.44.0"
+        run: |
+          curl -sSL -o allure.tgz "https://github.com/allure-framework/allure2/releases/download/${ALLURE_VERSION}/allure-${ALLURE_VERSION}.tgz"
+          tar -xzf allure.tgz
+          "./allure-${ALLURE_VERSION}/bin/allure" generate reports/allure-results -o reports/allure-report
+      - uses: actions/configure-pages@v6
+        if: always()
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v5
+        if: always()
+        with:
+          path: reports/allure-report
+      - name: Deploy report to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+        if: always()
       - uses: actions/upload-artifact@v7
         if: always()
         with:

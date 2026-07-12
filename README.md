@@ -93,10 +93,20 @@ documentation values — configuration, not secrets. Override with
 |---|---|---|
 | `lint` | every push / PR | ruff check, ruff format, strict mypy |
 | `test` | every push / PR | suite on Python 3.11–3.13 against a **digest-pinned restful-booker container** (deterministic — no shared state, no cold starts), parallelized with `pytest-xdist`; HTML report uploaded per run |
-| `live-nightly` | nightly cron / manual | full suite against the live Heroku instance with bounded reruns; report always uploaded |
+| `live-nightly` | nightly cron / manual | full suite against the live Heroku instance with bounded reruns; publishes an Allure report to GitHub Pages and always uploads the HTML report |
 
 Red PR builds mean real regressions: retries are deliberately **not** enabled in the
 PR-gating job. See the [flakiness policy](docs/TEST_STRATEGY.md#5-flakiness-policy).
+
+## Reporting
+
+Every CI test run uploads a self-contained `pytest-html` report as an artifact
+(`make report` produces the same locally). The nightly live run additionally publishes
+an [Allure report](https://qasimmahmood95.github.io/python-api-automation/) to GitHub
+Pages, with per-test setup/body/teardown phases, parametrized case ids, and rerun
+history:
+
+![Allure report — expanded booking CRUD suite with a selected test](docs/img/allure-report.png)
 
 ## Design decisions
 
