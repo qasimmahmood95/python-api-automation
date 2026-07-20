@@ -42,7 +42,7 @@ test = [
 dev = [
     "restful-booker-tests[test]",
     # ruff/mypy bounds track the .pre-commit-config.yaml revs; bump in lockstep.
-    "mypy>=2.1,<2.2",
+    "mypy>=2.1,<2.4",
     "pre-commit>=3.8",
     "ruff>=0.15,<0.16",
     "types-requests>=2.32",
